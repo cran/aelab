@@ -1,7 +1,7 @@
 Package: aelab
 Type: Package
 Title: Data Processing for Aquatic Ecology
-Version: 1.0.1
+Version: 1.1.0
 Authors@R: person("Zhao-Jun", "Yong", role = c("cre","aut"), email = "nuannuan0425@gmail.com")
 Maintainer: Zhao-Jun Yong <nuannuan0425@gmail.com>
 Description: Facilitate the analysis of data related to aquatic ecology, specifically the establishment of carbon budget. 
@@ -11,17 +11,18 @@ Description: Facilitate the analysis of data related to aquatic ecology, specifi
   Yong et al. (2024) <doi:10.5194/bg-21-5247-2024>.
   Staehr et al. (2010) <doi:10.4319/lom.2010.8.0628>.
 Imports: tibble, lubridate, stats, dplyr, openxlsx, readxl, ggplot2,
-        readr, tidyr, stringr
+        readr, tidyr, stringr, purrr, rlang, grDevices, multcompView,
+        FSA, rcompanion, rnaturalearth, sf, ggspatial
 License: GPL (>= 3)
 Encoding: UTF-8
 RoxygenNote: 7.2.3
-Suggests: knitr, rmarkdown, testthat (>= 3.0.0)
+Suggests: knitr, rmarkdown, testthat (>= 3.0.0), rnaturalearthdata
 Config/testthat/edition: 3
-Depends: R (>= 2.10)
+Depends: R (>= 4.1.0)
 VignetteBuilder: knitr
 LazyData: true
 NeedsCompilation: no
-Packaged: 2024-12-24 00:57:30 UTC; yangshaojun
+Packaged: 2026-02-23 08:59:52 UTC; yangshaojun
 Author: Zhao-Jun Yong [cre, aut]
 Repository: CRAN
-Date/Publication: 2025-01-09 04:10:02 UTC
+Date/Publication: 2026-02-23 09:20:25 UTC
