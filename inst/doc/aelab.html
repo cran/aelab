@@ -482,6 +482,58 @@ resulting in a flux with units of mmol m<span class="math inline">\(^{-2}\)</spa
 ##                                         unit
 ## seq_along(selected_data[[ghg]]) mmol m-2 d-1</code></pre>
 </div>
+<div id="additional-ghg-tools" class="section level2">
+<h2>Additional GHG tools</h2>
+<div id="convert_ghg_unit" class="section level3">
+<h3><code>convert_ghg_unit()</code></h3>
+<p><code>convert_ghg_unit()</code> converts a GHG flux value to µg m⁻²
+h⁻¹. The input can be a plain number or a character string containing
+embedded numbers (e.g., a mean ± SD string); each number in the string
+is converted individually.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Numeric input: 97 mg CH4 m-2 h-1 → µg m-2 h-1</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">convert_ghg_unit</span>(<span class="dv">97</span>, <span class="at">ghg =</span> <span class="st">&quot;ch4&quot;</span>, <span class="at">mass =</span> <span class="st">&quot;mg&quot;</span>, <span class="at">area =</span> <span class="st">&quot;m2&quot;</span>, <span class="at">time =</span> <span class="st">&quot;hr&quot;</span>)</span></code></pre></div>
+<pre><code>## $value
+## [1] &quot;97000&quot;
+## 
+## $unit
+## [1] &quot;µg m⁻² h⁻¹&quot;</code></pre>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># Character string input: each number is converted individually</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">convert_ghg_unit</span>(<span class="st">&quot;0.002 ± 0.003&quot;</span>, <span class="at">ghg =</span> <span class="st">&quot;ch4&quot;</span>, <span class="at">mass =</span> <span class="st">&quot;mmol&quot;</span>, <span class="at">area =</span> <span class="st">&quot;m2&quot;</span>, <span class="at">time =</span> <span class="st">&quot;hr&quot;</span>)</span></code></pre></div>
+<pre><code>## $value
+## [1] &quot;32.08 ± 48.12&quot;
+## 
+## $unit
+## [1] &quot;µg m⁻² h⁻¹&quot;</code></pre>
+</div>
+<div id="calculate_mdf" class="section level3">
+<h3><code>calculate_MDF()</code></h3>
+<p><code>calculate_MDF()</code> calculates the Minimum Detectable Flux
+(MDF) for a static chamber system. This is useful for evaluating whether
+a gas analyser is precise enough to detect fluxes at the expected
+magnitude of the study site.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">calculate_MDF</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>  <span class="at">precision_ppm     =</span> <span class="dv">1</span>,</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>  <span class="at">closure_time_s    =</span> <span class="dv">300</span>,</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>  <span class="at">data_point_n      =</span> <span class="dv">300</span>,</span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>  <span class="at">chamber_volume_m3 =</span> <span class="fl">0.0064</span>,</span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>  <span class="at">temperature_C     =</span> <span class="dv">25</span>,</span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a>  <span class="at">chamber_area_m2   =</span> <span class="fl">0.07</span></span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a>)</span></code></pre></div>
+<pre><code>## $MDF
+## [1] 113.953
+## 
+## $unit
+## [1] &quot;µg m⁻² h⁻¹&quot;</code></pre>
+</div>
+<div id="calculate_total_co2e" class="section level3">
+<h3><code>calculate_total_co2e()</code></h3>
+<p><code>calculate_total_co2e()</code> aggregates individual GHG fluxes
+(mg m⁻² h⁻¹) into a single total CO₂-equivalent flux (g m⁻² d⁻¹) using
+IPCC AR6 100-year GWPs (CH₄ = 27, N₂O = 273).</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">calculate_total_co2e</span>(<span class="at">co2 =</span> <span class="fl">4.02</span>, <span class="at">ch4 =</span> <span class="fl">0.001</span>, <span class="at">n2o =</span> <span class="fl">0.003</span>)</span></code></pre></div>
+<pre><code>## [1] 0.116784</code></pre>
+</div>
+</div>
 </div>
 <div id="nem-calculation" class="section level1">
 <h1>NEM calculation</h1>
@@ -503,9 +555,9 @@ eliminate any NA values in the dataframe. The <code>no_hobo</code> input
 was necessary for further analysis. Currently, it supports raw data
 downloaded from the Onset HOBO Dissolved Oxygen Data Logger
 (U26-001).</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>hobo_data_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;ex_hobo.csv&quot;</span>, <span class="at">package =</span> <span class="st">&quot;aelab&quot;</span>)</span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>do <span class="ot">&lt;-</span> <span class="fu">process_hobo</span>(hobo_data_path, <span class="at">no_hobo =</span> <span class="st">&quot;code_for_logger&quot;</span>)</span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>do[<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>), ]</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a>hobo_data_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;ex_hobo.csv&quot;</span>, <span class="at">package =</span> <span class="st">&quot;aelab&quot;</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>do <span class="ot">&lt;-</span> <span class="fu">process_hobo</span>(hobo_data_path, <span class="at">no_hobo =</span> <span class="st">&quot;code_for_logger&quot;</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>do[<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>), ]</span></code></pre></div>
 <pre><code>##             date_time   do  temp         no_hobo
 ## 1 2024-04-08 12:00:00 7.69 25.86 code_for_logger
 ## 2 2024-04-08 12:30:00 7.67 26.02 code_for_logger
@@ -517,9 +569,9 @@ from Taiwan’s weather station. In addition to extracting the columns
 with air pressure and wind speed values, it also duplicates the hourly
 data to match the half-hourly recorded frequency of the DO
 concentrations.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>weather_data_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;ex_weather.csv&quot;</span>, <span class="at">package =</span> <span class="st">&quot;aelab&quot;</span>)</span>
-<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>weather <span class="ot">&lt;-</span> <span class="fu">process_weather</span>(weather_data_path, <span class="at">date =</span> <span class="st">&quot;2024-04-10&quot;</span>, <span class="at">zone =</span> <span class="st">&quot;zone_A&quot;</span>)</span>
-<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>weather[<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>), ]</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a>weather_data_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;ex_weather.csv&quot;</span>, <span class="at">package =</span> <span class="st">&quot;aelab&quot;</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a>weather <span class="ot">&lt;-</span> <span class="fu">process_weather</span>(weather_data_path, <span class="at">date =</span> <span class="st">&quot;2024-04-10&quot;</span>, <span class="at">zone =</span> <span class="st">&quot;zone_A&quot;</span>)</span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a>weather[<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>), ]</span></code></pre></div>
 <pre><code>##   pressure_hpa wind_ms           date_time   zone
 ## 1       1015.2     1.4 2024-04-10 00:30:00 zone_A
 ## 2       1015.2     1.4 2024-04-10 01:00:00 zone_A
@@ -534,9 +586,9 @@ These parameters can be entered in Excel and then imported into R using
 included. The column <code>zone</code> corresponds to
 <code>process_weather()</code>, and column <code>no_hobo</code>
 corresponds to <code>process_hobo()</code>.</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>info_data_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;info.xlsx&quot;</span>, <span class="at">package =</span> <span class="st">&quot;aelab&quot;</span>)</span>
-<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>info <span class="ot">&lt;-</span> <span class="fu">process_info</span>(info_data_path)</span>
-<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>info</span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a>info_data_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;info.xlsx&quot;</span>, <span class="at">package =</span> <span class="st">&quot;aelab&quot;</span>)</span>
+<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>info <span class="ot">&lt;-</span> <span class="fu">process_info</span>(info_data_path)</span>
+<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a>info</span></code></pre></div>
 <pre><code>## # A tibble: 1 × 9
 ##   zone   site   no_hobo depth_m salinity start_date_time     end_date_time      
 ##   &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;     &lt;dbl&gt;    &lt;dbl&gt; &lt;dttm&gt;              &lt;dttm&gt;             
@@ -548,10 +600,10 @@ downloaded from the data loggers. Next, we will combine this with the
 other necessary parameters using the <code>zone</code> and
 <code>no_hobo</code> columns. We can use the <code>plot_hobo()</code>
 function to inspect the changes in DO concentrations.</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">merge</span>(weather, do, <span class="at">by =</span> <span class="st">&quot;date_time&quot;</span>)</span>
-<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>merged_df <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
-<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>  <span class="fu">inner_join</span>(info, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;zone&quot;</span>, <span class="st">&quot;no_hobo&quot;</span>))</span>
-<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a>merged_df[<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>), ]</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">merge</span>(weather, do, <span class="at">by =</span> <span class="st">&quot;date_time&quot;</span>)</span>
+<span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a>merged_df <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
+<span id="cb27-3"><a href="#cb27-3" tabindex="-1"></a>  <span class="fu">inner_join</span>(info, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;zone&quot;</span>, <span class="st">&quot;no_hobo&quot;</span>))</span>
+<span id="cb27-4"><a href="#cb27-4" tabindex="-1"></a>merged_df[<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>), ]</span></code></pre></div>
 <pre><code>##             date_time pressure_hpa wind_ms   zone   do  temp         no_hobo
 ## 1 2024-04-10 00:30:00       1015.2     1.4 zone_A 8.28 25.10 code_for_logger
 ## 2 2024-04-10 01:00:00       1015.2     1.4 zone_A 8.07 25.04 code_for_logger
@@ -564,7 +616,7 @@ function to inspect the changes in DO concentrations.</p>
 ## 1 1899-12-31 05:45:00 1899-12-31 18:15:00
 ## 2 1899-12-31 05:45:00 1899-12-31 18:15:00
 ## 3 1899-12-31 05:45:00 1899-12-31 18:15:00</code></pre>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="fu">plot_hobo</span>(merged_df)</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="fu">plot_hobo</span>(merged_df)</span></code></pre></div>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASAAAAEgCAYAAAAUg66AAAAEDmlDQ1BrQ0dDb2xvclNwYWNlR2VuZXJpY1JHQgAAOI2NVV1oHFUUPpu5syskzoPUpqaSDv41lLRsUtGE2uj+ZbNt3CyTbLRBkMns3Z1pJjPj/KRpKT4UQRDBqOCT4P9bwSchaqvtiy2itFCiBIMo+ND6R6HSFwnruTOzu5O4a73L3PnmnO9+595z7t4LkLgsW5beJQIsGq4t5dPis8fmxMQ6dMF90A190C0rjpUqlSYBG+PCv9rt7yDG3tf2t/f/Z+uuUEcBiN2F2Kw4yiLiZQD+FcWyXYAEQfvICddi+AnEO2ycIOISw7UAVxieD/Cyz5mRMohfRSwoqoz+xNuIB+cj9loEB3Pw2448NaitKSLLRck2q5pOI9O9g/t/tkXda8Tbg0+PszB9FN8DuPaXKnKW4YcQn1Xk3HSIry5ps8UQ/2W5aQnxIwBdu7yFcgrxPsRjVXu8HOh0qao30cArp9SZZxDfg3h1wTzKxu5E/LUxX5wKdX5SnAzmDx4A4OIqLbB69yMesE1pKojLjVdoNsfyiPi45hZmAn3uLWdpOtfQOaVmikEs7ovj8hFWpz7EV6mel0L9Xy23FMYlPYZenAx0yDB1/PX6dledmQjikjkXCxqMJS9WtfFCyH9XtSekEF+2dH+P4tzITduTygGfv58a5VCTH5PtXD7EFZiNyUDBhHnsFTBgE0SQIA9pfFtgo6cKGuhooeilaKH41eDs38Ip+f4At1Rq/sjr6NEwQqb/I/DQqsLvaFUjvAx+eWirddAJZnAj1DFJL0mSg/gcIpPkMBkhoyCSJ8lTZIxk0TpKDjXHliJzZPO50dR5ASNSnzeLvIvod0HG/mdkmOC0z8VKnzcQ2M/Yz2vKldduXjp9bleLu0ZWn7vWc+l0JGcaai10yNrUnXLP/8Jf59ewX+c3Wgz+B34Df+vbVrc16zTMVgp9um9bxEfzPU5kPqUtVWxhs6OiWTVW+gIfywB9uXi7CGcGW/zk98k/kmvJ95IfJn/j3uQ+4c5zn3Kfcd+AyF3gLnJfcl9xH3OfR2rUee80a+6vo7EK5mmXUdyfQlrYLTwoZIU9wsPCZEtP6BWGhAlhL3p2N6sTjRdduwbHsG9kq32sgBepc+xurLPW4T9URpYGJ3ym4+8zA05u44QjST8ZIoVtu3qE7fWmdn5LPdqvgcZz8Ww8BWJ8X3w0PhQ/wnCDGd+LvlHs8dRy6bLLDuKMaZ20tZrqisPJ5ONiCq8yKhYM5cCgKOu66Lsc0aYOtZdo5QCwezI4wm9J/v0X23mlZXOfBjj8Jzv3WrY5D+CsA9D7aMs2gGfjve8ArD6mePZSeCfEYt8CONWDw8FXTxrPqx/r9Vt4biXeANh8vV7/+/16ffMD1N8AuKD/A/8leAvFY9bLAAAAOGVYSWZNTQAqAAAACAABh2kABAAAAAEAAAAaAAAAAAACoAIABAAAAAEAAAEgoAMABAAAAAEAAAEgAAAAAKtAJY0AADtwSURBVHgB7Z0J/EzV//9Pu0plKWtE9ghlKymfIhFttCBrpA1p0d5PSLZsaVO2LCUVhWijFBEpUdGGKEuLQouo5n+f5/89050xdz6z3DtzZ+b9fjw+n7lzl3Pe53XOfc/7nPNeDgpYpIQEAUFAEEgDAgenoU6pUhAQBAQBjYAIIBkIgoAgkDYERAClDXqpWBAQBEQAyRgQBASBtCEgAiht0EvFgoAgIAJIxoAgIAikDYFD01ZzghXv2rVL/fPPPyFPFyhQQP3999/6L+SCi18OP/xwtW/fPhdLDC3q4IMPVtTx119/KS8tIw477DC1f//+0Mpd/Eb5Bx10kKdYHXLIIRqjf//910XOQ4tiTIFT+FgLvSu5b6kaU3v37s2X0d9//92T9+eoo45SxYsXd6w/4wQQQgBhY6dChQqp3377Tb+89vNuHgPknj173CwypKwjjjhCUQft8GrQI+R4sajDK6L8Qw891FOswAmMvPxBKFy4sB5n/CB4RX4aU4wJL/F0wlCmYE7IyHlBQBDwHAERQJ5DLBUIAoKAEwIigJyQkfOCgCDgOQIigDyHWCoQBAQBJwREADkhI+cFAUHAcwREAHkOsVQgCAgCTgiIAHJCRs5nDALr169Xn376acbwK4z+h0DG2QH9x7ocCQJK9enTR82ZM0dhbFerVi21YMECgSWDEBANKIM6S1gNRWDZsmVq5syZWvhw5YsvvlCzZs0KvUm++RoBEUC+7h5hLhoCv/76qzr22GODt+DCsnv37uB3OfA/AjIF838fCYcOCJx33nla4OAbhv8ZbhNt27Z1uFtO+xEBEUB+7BXhKSYE8J/bsmWLevzxx7XjaOfOnbWvW0wPy02+QEAEkC+6QZhIFAG0n169eiX6uDyXZgRkDSjNHSDVCwK5jIAIoFzufWm7IJBmBEQApbkDpHpBIJcREAGUy72fgW1fs2aNuvzyy1WTJk3Uzz//nIEtEJbtCMgitB0NOfY1Alu3blXNmzfXPLLtfuqpp6p169ap4447ztd8C3POCIgG5IyNXPEZAvPmzVNsvUMYHRI2ddWqVT7jUtiJBwERQPGgJfemFYETTzwxJO73L7/8okqXLp1WnqTy5BAQAZQcfvJ0ChG48MILVbdu3XSNaD9PP/20qlKlSgo5kKrcRkDWgNxGVMrzFIGBAweq/v3764wVpLURymwERAPK7P7LOu7ffvtt1bdvXzV27FjHthUsWFDxFwuxU9aiRQs9VevYsaOnOddi4UfuCUVANKBQPORbGhF46623VKdOnTQHRx55pPrmm2/U6NGj1ebNm9XRRx+tihYtGhd35A5jp8zQokWL1PDhw9Udd9xhTslnmhEQDSjNHSDV/4cA0ytDf/75p3r11VdVq1atVLNmzbQgmT9/vrkc0yfJ9uzTNHbO0LCE/IOACCD/9EXOc1K1alVF9lZDpAv+7LPPgjF+rr/+evXTTz+Zy/l+HnPMMapSpUo6VIe5uXHjxuZQPn2AwH+97QNmhIXcRmDYsGGKfO9Mv0jv3LJly5Btd67Fkx4bYfbKK6/o9SK26wnfetddd+U2yD5rvawB+axDcpkdLJq/++47vfZzwgknqE2bNukYzwgeBBILz+XLl48LIvKvE6pVyJ8IiAbkz37JWa7QWpg2FSpUSNWuXVstXrxY+3717NlTrV69OiZcVq5cqRYuXKi36mN6QG5KGwKiAaUNeqk4FgQqVKigHnnkkVhu1ffcd999aurUqVpjYiH7yy+/jHnLPuZK5EbXEBANyDUopaB0I8CUbeLEiTo8K8KHadsTTzyRbrak/igIiACKAo5cyiwE9u/fr+2FDNdsu7MVL+RfBA6yOingX/YO5IytWeIA2wkP6b///ltheOYVHXbYYfqX1avyWfvAZoXMDl52CVoBWHlF4ESojH379nlVhe5/MGJxOpzYOcPgkMVnxgOL2rFaTdvLyqYxRdLG/Gjjxo2e9Blpk6JtHGTcGtAff/xxwAtUvHhxhcqNcPKKcH7E+9orYsAXKVJE7dq1yzNBipDDNoY6vCJ2shByXmKFcEGIRhJy06ZN08kJaSNGjGhF4byMHz9evffee6pp06YK94xIVKJEiawZU+RK8/LHORJ+sZ7LOAEUa8PkvtxFoHXr1o6Nxw0DIQUhhEhuyP3snFWsWFHVqFFDW0uTcZWXljWkcI3bsXC5EDcCIoDihkweyGQEpk+fHmSfqcmkSZPU4MGDdVRFtKY777xTjRgxQmtYaIwkP8QUQMgbBGQR2htcpVSfIlC9evUQzrZv366/m2npqFGjglN81ph27Nih15FCHpIvriEgAsg1KKWgTEBg8uTJmk3jXV+vXr0QtllXYg3LEOsnrJsJeYOACCBvcJVSfYpAqVKlFDs+WEoTT9p44COQoAEDBqgyZcroYwQPcagl6L2Gw5N//4l6T4qXQgUB/yHAjmPZsmU1YzVr1lQffvih3rpnEfqMM85Q3bt3V5gToA1hUiDkHQIigLzDVkrOEATQijp06BDCLcHP8Lz30rQjpMIc/SJTsBzteGm2IOAHBEQA+aEXhAdBIEcREAGUox0vzRYE/ICACCA/9ILwIAjkKAIigHK046XZgoAfEBAB5IdeyBEe8PS/9dZb1dlnnx1XkLEcgScnmynb8DnZ7elpdJ06dYLe/kOGDFEFChRQPXr0SA8zUqsvEBANyBfdkP1MEC5l586dIWEhZs+enRENHzNmjKpWrZrCXmjJkiUZwXOmMCkCKFN6KsP5xL+qXLlywVZgYZwJPlZvvPGGGjp0aDCG0pVXXqm2bNkSbIccJIeACKDk8JOnY0QA1waj8TD1ysvLU88991yMT6fvtvXr14c4p+IXtsmKPS3kDgKyBuQOjlKKAwJkNiXURYMGDRSRK7du3epwpz9PN2rUSLFeZYi2nH766earfCaJgGhASQIojzsjwNpJixYtdNhTPMwj+VURs3nBggXKxOVxLi09VxA2L774ohae7N6tWLEiJPB9erjKnlpFA8qevvRVS7Zt26bXTmCK+M2sARHsi7xdhtasWaOaN2+ukxASGhVBVKtWLXPZN58NGzZUH3/8sW/4ySZGRAPKpt70UVuw+TExdmCL+Mo//vhjCIcIHwjhA5G7XSi3EBABlFv9nbLWsuNVt25dXR/phgjsfv/994fUb98V44LkcA+BJye+iADKiW5OTyPZ5Ro5cqQiE8XSpUvV8ccfH8LIXXfdpb+zKwY99dRT+lP+5Q4CsgaUO32dlpa2bdvWsd6LL75YoQUtX75c1a5dW9WvX9/xXrmQnQiIAMrOfs2YVhESlT+h3ERApmC52e/SakHAFwiIAPJFNwgTgkBuIiACKDf7XVqdJAKsW/EnlBwCsgaUHH7ydA4icNlll6m1a9eqP/74Q1WqVEm98847kr4nwXEgGlCCwMljuYnAokWL1AcffKCFDwjgSjJnzpzcBMOFVosAcgFEKSJ3ENi7d29IGBHyx2P1LZQYAjIFSww3eSpHEWjatKn67bfftG8b/m0IpNatW+coGsk3WwRQ8hhKCTmEAG4lBCSbMmWKbjUByhBEQokhIMglhps8lcMIHHzwwapLly45jIB7TU+pAEJ1/eSTT9RZZ50VbMHmzZtDglSRk5udBSFBIFMQwNN/0qRJavfu3ap79+7q2GOPzRTW085nygQQc+UHHnhA8ethF0Djx49XO3bs0DFhQAOzfBFAaR8XwkAcCOD1/8svv+iQIw8//LDeJSMAm1D+CKREAG3YsEHdc889ini6/Nnpq6++0oGrypYtaz8tx4JARiBAUDV+QA0RduTZZ59Vd955pzkln1EQSMk2PAZb9957r2rXrl0IK5wnVQuBqqZNm6ZtKkJukC+CgM8ROOqooxQB9w1xXLBgQfNVPvNBICUaUI0aNTQbWIza6ZtvvtE2FCtXrlRHHnmkjojXtWtX1bJly+BtzK3HjRsX/D558mRVuXLl4HcOSPFCp3vZ8dRBUHWvKTxmjtv10Q4Tf8ftsimP8qFUYKUr8vBfLGOKdt59991qwIABWrsvXbq0Po6FLT+NKROVMha+3bwnJQLIiWGSvZGqpXDhwvqWihUrqokTJ4YIoFNPPVVdffXVwSIQVOHBzRko+/fvV/v27Qve5/YB9ZJczytCdefXFK0wEAh4Ug0D/ogjjtC2K55UYBWKcGOdj3Z4RWgZGACy+OsVMaYYT4yr/Oj2229XrVq10ovQrAcxPsn+8cMPP+g1TfCIRNkwpiK1K55zaRVASF12DowAYh2I+TSDy3QaHWpCe9IwpmvsptmJ2MNYo4YLJvs9yR4z6MPrTbZM+/MIBiOAvHqxwJQ/L9uBIMUuxss6wIlA917+4BgBFOuYOvHEE3V3InhJZtjF2qY3AoZQs5GSMGbDmLKP4USOI4vmREpK4BlyLN1yyy1as+BXf968eapx48ZB4ZNAkfKIIJBWBBC8CB8IjRmBzO6vUGQE0qoBVahQQZux9+jRQ/+iYT8xcODAyJzKWUEgAxBAK0N7Mhog2iy7wJlOe/bsUe+//76esVStWlWxNOIGpVQA5eXlKf7s1LlzZ524jg4TAy47Mpl3zMv3+OOP66kRO55eLnb7FZ0iRYqoc889V7355pt6WQDNPtN/VKdPn65eeeUVLXSYXj///PM64WS3bt2S7oaUCiAnblmXEOHjhE5mnOdFq1Klit4F41cfswvSMpv1vcxohTtcsms7YcIEne2VxWmzC+xO6akthUX4mTNnat83Y8OHUXGHDh20WQ3rccmQLwRQMg2QZ/2BwOLFi/Xmgdk1QvshpfG1117rDwZTzIUb2kGKWY5YHf1ZsmTJEANi+rZ8+fKKaVmyAiiti9ARWywnMxIBBqLZuaQB/EomOzgzEogsY5o+xNZp9OjRwXUtjIZZMnHD1ksEUJYNmHQ1h5xeF154oa6e6XQ5K9+X3X4rXXxJvckjwHQaA0t+VKASJUqo4cOHJ1+wVYJMwVyBUQoBgccee0zddtttekcz3FpdEMpcBIiBxML6e++9p+3wqlev7prXgQigzB0XvuT8tNNO04aIP//8sy/5SxdT7CJ9+umn6oILLggxrE0XP/HUi/vTa6+9purVq6f93vihoS3XXXddPMVEvFcEUERY5KQg4B4Cw4YN02solMjLO3bsWNWmTRv3KvCwJBahZ82apXfBChUqpGvCbo+/a665JsQRNxE2ZA0oEdTkGUEgDgRYwLUTAihTCBcnbJuM8IFvdsH4vm3btqSbIQIoaQilAEEgOgIsyNsJR9VMIay68bV85plntIMtU+uXXnpJ/fTTT6pUqVJJN0MEUNIQSgGCQHQEiPoJGS3i3Xff1VlVH3zwQe24Gv3p9F/t37+/IvAaNl3YN23atEkNGjTIlWD8sgaU/v4VDrIcgVNOOUUv2uIThh/VihUrtCUxjqpYjRM98eabb/YtCsSowmVq9erVOjwJ7cEQ0Q0SDcgNFKUMQSAfBFhHIawMU5revXvru03Ylaeeeiqfp9N7mRCzaDzENyI8Ca4mxL52g0QDcgNFKUMQiAMBfOaWLVsWfIKA9n4lHIxffvllxTTS+GuyM4ZGBN/J+vqJBuTXnhe+shaBMWPG6LaZNaG5c+fqKJhff/218pv9FFoawfJYiDbE1JGdMAIHJkuiASWLoDwvCMSJANETETbERD/hhBMUaywNGjTQzp0E6cP7vFGjRnGW6s3tRHVkF+++++5T55xzjrZy/+CDD7SfHzn+INa1Et0REwHkTb9JqYJAVARw8uSFZhrD7hJb80ajIDHDRx99FDGMa9RCPbqIxsMfggciJhBCk908iDAdIoA0FPJPEMg8BEgWYIQP3LPQSwYZMsJgb4MbR7JrLcmg4mVIWdGAkukZeVYQcAGBLlYM6QULFugtebQLpmjGzwrhhPMnU7Z0hjdhaogzKsT00KxfJdt8EUDJIijPCwJJItCwYUO1cOFC9eSTT2r7GoLZP/LII1orItIk2g/RJXEGTQexDU9wOSIcfP/994oQrU2aNFHdu3dPmh3ZBUsaQilAEEgeAV7ukSNHql69emkhhOAxxDoR8XjSQeyCzZgxQ4eY7dSpk44LjVsG3vFoRcmSCKBkEZTnBQGXEbjiiitU27Ztdaks9qJ9FCtWTK8FYZOTSiLPGVNC+xoU8YE450Y2VZmCpbI3pS5BIEYERowYoa2P0YSwucF4kWOmZ6SCJh4PO1NeEwkVqYcsH2hh1M96FQlCEULJkmhAySIozwsCHiGA4MEOZ/78+frFZ3eM3TKywjIF8pKI+UzWYogol+QEg9avX682btyohgwZ4ooAFA1Iwyr/BAH/IoDQwRqZ6RBkPr3kGDskplgXX3yxNkTs16+f1sBYkGZnzi0SDcgtJKUcQcAjBAj2jyZE1hFcIshG0bJlS49qcy4WweOm8KEm0YCc8ZYrgoAvEGANZu3atXrthXWg5s2b+4IvN5gQDcgNFKUMQSAFCLRo0UKnPkITwi4Ig0BcILAfylQSDShTe074zlkE8Jg///zzg+0fMGCAth0i40amkWhAmdZjwm/OI/Dll1+GuEKgETFFy0QSDSgTey2NPLM9y4BPp19SGpvvi6oJf2E3AmSXLC8vT2/VY7lM1MVkiTAh9hhAyZbn9LxoQE7IyPkDELjppptUnTp1VMWKFdXSpUsPuC4nUoMAVslEVDzssMPUySefrPOMYTB4xhlnaH8t/LRMuNdEOapWrZrua6fnBw8e7IorhmhATgjL+RAEWOjEAtbkB7/yyisVAalwFRBKPQInnXSS+vbbb3XFGChWqlQpyARTNHK3Y7vjBjVr1uyAYtC6CBlSsmRJNXDgQFWmTJkD7onlRFwCCLUPQyQaSIJ60vCSMxrfEKHsRgAvaCN8aCl2KQQpFwGU/n7HYplpF9NjCO2HXTK3iHhE4YRwI5PHCy+8oMN0tG/fPvyWmL7HLIDIC4Qk3LFjh6pZs6b2BSEzIjYJs2fP1v4qMdUoN2UkAhi+TZgwQfOOXQrWuKxFCKUfAbQQtuOJGYRmApE22S3ix4bAaMQDwgeM+ERMx1FCmO4ZwZdIfQdZhk3/+f1HKYH5JQ0lrSxOaDxGnqDWrVur66+/Xuc2ivK4a5cITRDOMnNinOTsv9CuVfi/guy/MG6XTXnM55nHo2WaQeR2PVixMpgSNeUnnxWOkISOGDp0aDBLgp1PFi4RUMaPyH7NrWPcEviVxyfKK8q0MUWmCqbF9DEhXS+66CL9nrBhwLn8xhSKBRkwItHkyZO17xnxiBiny5cvV40bNw4GTYv0jDlHJo1oOcRiEkAMWApCCyIpmZ0QSPPmzVOvv/66/bRnx5FikMAbOaz584rY9Un0xY2FJyLh8fLy4oYL2Fiej+UeBiIOjghrr8i4DLAu4RUx5eeF8lIAMab4QXN6Kd1om5djiulx06ZNdQAxhDVT6Gi7WsSkjtRWBFubNm3UlClTglv/4NKjRw+tESOQolF+AiimKRhSlJci0gvIQPNyIIQ3DpDC60Nz4Hwk/sKfT/S73Rkw0TKiPWdSn9C5ye5gONVDPyLovMSJAel1HbSPMRDphXFqe7zneXF4+bzEyssxhZZqiH4n8L1JEW3Ox/LJjzpJFe0hWPkR4ztLMGXLlo2lGMd7YtqGp8I8y86AFLIrV67UwogXhV0RQkfarTIda5ILgoAgkDIE7NoO2uLHH3+cUN0sPVAWURDRkrDCfumll/SaUKKZMOyMxCSAeIBtWOaJ9evX1964SEW8dEk3S7wQIUFAEPAPAuFb5x07dkyYuf79++vlF7Sobt26qU2bNulgaWi6yVLMJWBnsGrVKvXWW2/poERoRbVr11ZnnXVWsjzI84KAIOAyAo8++qieCm/fvl3hxNrFyryRKGFqQYRGNCn+3BA8hpeoAoitt/D1Fixh+TNEA82c0JyTT0FAEEgvAmw4MGthpsKCdDLrik5+ZlhLJyuMogog1n1iMWgiiDbpZIUEAUEg+xCwh/tgUZ7F53JWuma0Ik8FEItNLDZDzz//vF58wv6jVq1aCs2Hrfenn35aW0RmH+zSIkEgdxHAuJDpFruBjz32WAgQzIxIHxQ+Owq5KcYvUTUgIvFDbMFjUzB16tRgNDaMi84880yt2o0aNUrWgmIEXG4TBDIBAXtM6HB+mdYlq/mYMmPaBcNwDQNAu8ObKYD4tDt37jRf5VMQEASyHAHsijBMPO6445JuaUwCCItNtJ2+ffsGXfBNfiDSc6QjQHbSLZcCBAFBIGEEWOR2g6JOwewVTJw4UV166aU6QyMJyliIYn0I24DevXvbb5XjHEEAK3iyduL7dfXVV7ueMSFHYMzpZsYsgCpUqKBwRuQPnzAWp3BOC/cNy2k0c6jxLEAyJcf3C3N9YsJ8/vnnOYSANNUNBGIWQFTGYMMLlj+h3EZgxowZOg6U3bH17bff1o6LuY2MtD4eBOISQPEULPdmNwI4UjL1MrRnzx4JTGfAyILPVMWEFgGUBYMlHU0gRMNDDz2k1wGNW84555yTDlakTg8QwMrZEKF3oxHxwYoWLRrtFsdrIoAcoZEL0RBgKxYPa6LkYRPCLqlQdiKAsXE0ateuXcJ2gCKAoiEr1/JF4Oyzz873HrkhsxHAsdUrEgHkFbJSriCQRQiEx4R2KwpGTIaIWYSjNEUQEATiRICY0D179lQbNmzQa374ho0bNy7OUiLfLhpQZFzkrCAgCFgIEJZ21qxZITGhiQfNH5k38osJnR+IogHlh5BcFwRyGIH8YkInC40IoGQRlOcFgSxGwOuY0DIFy+LBI00TBNxAgJjQ5IIn6CBTLnY+Bw0a5EpIDhFAbvSQlCEIZCECuNmQCJTsF3fccYe2+SIrRo0aNaImG4wHCpmCxYOW3CsI5AgCuNawyEwmHCIeEPGCbBgQKboffvhhfZzsP9GAkkVQnhcEshABIiKS7++0005Tw4YNUyNHjlSE4YEQTJ07d9ZpxO0JCxOBQTSgRFCTZwSBLEeA7XdDZcqUUSxGG8L1hiCFbmSmFQ3IoCqfgoAgEESAnH+TJk1SpD3H2ZSF6CZNmugsqfj/EY41UQfUYCXWgQggOxpyLAgIAhoBkhE+8MADavbs2TrmO87HxHsyREhWFqntmpG5Fs+nCKB40JJ7BYEcQoCIl+x+eUkigLxEV8oWBDIYAfs2PLthS5YsUWzDV69ePeHwG+FwyCJ0OCLyXRAQBFSkbfiNGzfqHIGyDS8DRBAQBDxFQLbhPYVXChcEBIFoCMg2fDR05JogIAh4ikCqtuFTugZEwvulS5ceANwXX3yh3njjDUXUNSFBQBBIPwJmG551n61btyqzDT9v3jydHdlswyfLacp2wciiil0BDbGHcxw1apT67LPPdJI7Iq2NHTtWlS1bNtl2yfOCgCCQJAL2bfhdu3ZpZ1SKbNSokUrWBcOwlhIBRCjHe+65R1tP2hPa49yGVSXObggmkt1Nnz5d3X333YY/+RQEBIE0I/Dss8/qd7Ry5crq+++/1+8oVtHdu3dPmrOUCKA//vhD3XvvvdqGYP78+UGmEUw1a9bUwoeTp59+unr11VeD1zlgerZu3brgubp16x5gfYk6SJwSMrd6RQhIL8vHvwYix9a///7rSTPAiWSCXrfDa6zoa9phT4zoBWDZMqZIIhkIBKJC9Ouvv0a8/s8//2jF4JlnnlHbtm1TTMH69Omj2rdvr6644gqtVER8MMaTKRFAxA+B3nnnHf1p/tEgu0ZEvnkMney0aNEiNXr06OAp4tPimxJOvFRevljUd/jhh4dX6/p3MPCaGJBek1squtd8Ris/W8aU/R1zai/vYiRCeeB9K1y4sBZA3MN7wDmEVixlRyrXnEuJADKVhX/yC4aENfT3338fIES6deumOnbsaG5Rv//+u9q+fXvwOwfFihXT57nmFfFCOf1KuFEnnVqkSBH1448/hmDiRtmmDDQTfHd2795tTrn+yYBEmwv/IXGzIgQDY8W+Vexm+ZRVvHhxxaZJJo8pfmgQHD/88EPCWjXOqLynb775pg7HgXX0ggUL9DiNpAjE2w9pFUDkn16zZk2Q5507d6qSJUsGv3PAi2nXPACAwRdOqJj5qZnhz8T73evy4cfLdhj+zWe87Y/lfsO/l3UYPryuw7TF1OfFp5dtsJdtP463HbfddptiCsaUa/369Yr3dsiQIa5MgdMqgOrVq6fGjBmjtmzZogXP3LlzVf369ePFR+4XBAQBDxEoV66c6tevn/5xZEGatUS3KK0CiPUO8guxms7046STTtKLW241TsoRBASB5BFYu3ZtxEKqVauWdGD6lAqgvLw8xZ+dWrVqpS644AJF/qFkY4vYy5VjQUAQcAeBJ598MlgQi9IsWKMVjRgxIrMEULAVYQdsd/In5C8EWEhevny53vGoVauWv5gTblKGAAbCdsJjoVevXhHXYu33xXKcUg0oFobkHn8gwM4J/kDsamEFi8X6VVdd5Q/mhIu0IsByibFbS5aRlPqCJcusPJ86BLp27aorQ/hAuNF4uSWtK5F/GYEA5hxTpkxJ2gaIxooAyoguTz2TOCPayQgi+zk5zl0E3NoJEwGUu2Moasvx3YNIvwL17NlTZ0TQX+SfIOASArIG5BKQ2VZMlSpVtJEoVq9YvJ577rnZ1kRpjw8QEAHkg07wKwtMw+xuMH7lU/jKXARkCpa5fec657i44GfnpY+V60xLgRmNgGhAGd197jFPFgRivGD7g7/d6tWrtZOvezVISYLAgQiIBnQgJjl5hrhMBJtC+ECdOnXKSRyk0alFQARQavH2bW14ONs9pp38f3zbAGEsIxEQAZSR3eY+023btg0plNALQoKA1wjIGpDXCGdI+bfeeqsOB/uOFbXynHPO0XY/GcK6sJnBCIgAyuDOc5v1G2+8UfEnJAikCgGZgqUKaalHEBAEDkBABNABkMgJQUAQSBUCIoBShbTUIwgIAgcgIALoAEjkhCAgCKQKARFAqUJa6hEEBIEDEMg6AYQ/EzmMSPksJAgIAv5GIKu24bHkrVChgrZnMb5NU6dO9XcPCHeCQA4jkFUa0OTJk3UGSIQP9P7776uVK1fmcPf+13SE87hx43R+J5OG97nnnlP9+/cPSQ753xNyJAh4j0BWaUCEkSC7hkn3jGOlOfYeSn/X0LRpU/X111/rTAakUyEV0muvvaaZnjBhgnriiSdUy5Yt/d0I4S7rEMgqDQh/pr179ypyYpM/nNxF5DEiA2upUqXUzJkzs64DY2nQd999p9atW6fj/KAJ8WeED8+zbhaeeiWWcuUeQSBZBLJKAyLT6qZNm7SgKVCggCKXVePGjYMY9enTRwulXEv/jDBGKJP8EUJLJK2KCb1BgHHiAAkJAqlGIKs0IMA7/PDDVYcOHdTll1+uPv/885DUIUcffbRav359qjFOe31FixZVo0eP1nwULlxYlSlTRr3wwgvB74ccckiIRpR2hoWBnEEgqzSg8F6rU6eOTqpnzpPXCk/vXKRLLrlET0VZJytdurTWgIj5s2XLFkUAerQkIUEg1QhknQZkB5BsDosWLVJMzZiOzZo1S5UsWVINHz5cEX7C7AbZn8nmY/Ag8qHJaolmRPZTET7Z3Ov+bltWa0BAX7Vq1ZBpV/ny5fXOGAuvLEojoCpXruzvXhLuBIEsRSCrNaDwPvv000+1nRDCx5BZCzHf5VMQEARSh0BOCaDjjjsuxC6InSGmIUKCgCCQHgRySgCx+zN48GCN9DHHHKNOPfVUdf3116vNmzerFStWSD6s9IxBqTWHEcj6NaDwviXTZ7NmzRTuGhUrVlRz585V1113nSpYsKD67bff9NZ9oUKFwh+T74KAIOABAjmlARn8ihcvroUPAgfhA3F88MEHa18pc598CgKCgLcIZJwGdNRRRykM5+yEJS9byRghxkM8x1TMOK/++++/ejqGsV44YT0c6Xz4fYl+R/hBrFPhKuEVsQXvZTvACVy9rIP+ByP6y0tKZEzFw0+qxhRmKPnRr7/+mt8tnlzPOAGEb5d9FwtU0GhwK8DQMF7CAXPGjBlaqOG4yhrRN998ozZs2KBOOeUUhcCDeKF++eWXeIuP+X4WxIsUKaINJ91woMXtYvz48Vqzu+mmm/QUEyGHwN21a1fMfMV7IwIUIeclVvQJY2Dfvn3xshfz/SVKlEh4TMVaSarG1O7du0M2X2LlLxX3ZZwAchuUkSNHqgYNGui0xM2bN9e/rDVq1NCaCC8qi9MY8GUSoR1g24QmgjAbM2aM+vjjj7URZia1Q3jNfgRyXgDRxVdddVWwp/Gah4yWQJ6sOXPmBK9nwsGyZcs0m0ZDYGr64osvql69emUC+8JjDiGQk4vQ0fq3WLFiIZcz0XmVaRbajyEEEeeEBAG/ISACKKxHOnfuHOIb9dBDD6nly5erQYMGZYzHOPZNXbt21S3DvKBSpUqqU6dOYS2Vr4JA+hGQKVhYH9xyyy3af2zVqlWqYcOGemu+devWwUXqvn37Ku7xO/Xr10+1b99eB2TDEVdIEPAjAiKAIvRKixYtFH+QeXnNzhQ7S5kggOAdzUdIEPAzAjIFy6d3iJVjJ7aXMQVYvHix+uyzz+yX5FgQEATiREAEUD6AjRo1St9h3DOwGcKF44YbblDnn3++mjJlSj4lyGVBQBBwQkAEkBMy/ztP9ECySTz//PPqww8/VOQZw6DPWI6S1kbiKecDolwWBBwQEAHkAIz9NJa3hHLFRgiLZbsLABbYLFi3a9dOXXTRRUG3DvvzciwICAKRERABFBkXx7M333yzvoZxHy4HZN3o0qWLXhP66KOPdHxl1oiEBAFBIH8EZBcsf4xC7mBniciKWBafcMIJauPGjWrJkiXa5QEXCPx7CPaOe4eQICAIREdABFB0fCJexWm0R48e+hohXe3e6+ySEfiebBMQQdCEBAFBIDICMgWLjEvMZ6+44gpFyhuInbJp06apRx99VOXl5WktqGfPnjGXJTcKArmGgAggF3qctMZffvmlWrlypfbBQgiZrKNEXFy4cKELtUgRgkD2ISACyKU+xeeKzKt40dsdPwk6ZbbsXapKihEEsgYBWQNyuSuZerEmZKI2siN24YUXulyLFCcIZAcCogG53I+sA33yySeK4PcsVLMjtm7dOlW3bl1tR4ThopAgIAj8fwREA/JgJBBLmDAe0A8//KBatWoVrGXcuHE6PfJll10WPCcHgkCuIiAakMc9j52QPUA7bhxfffWVx7VK8YJAZiAgAsjjfiK+tD1AO24cBMKfP3++euaZZ2SB2mP8pXh/IyACyOP+YWeMNSGyLNSuXVtNnjxZTZw4UWdkHTBggM68QQYOIUEgFxGQNaAU9DouG/iJQTt37tS+Yxyb9EKE/Hjqqac4JSQI5BQCogGluLsJFm9yjVE1392wE3rvvffUeeedp10/jLBLcdOkOkEgbgREAMUNWXIPsCB911136UJMFtRhw4apNm3aaENGbIZM+NdYa2JRm9RCZPDgWXbdSK4oJAj4HQGZgqWhh7p3767q1KmjfvzxR3XGGWeoatWqaU2IBWoSCN5zzz1q6NChMXP2wQcf6Myn5LeHEGyrV69WFSpUiLkMuVEQSAcCIoDSgbpV52mnnRasGatpsx6EEFq0aJGOvohgYeH6rLPOCt4b6YA0PEb4cB13EJ4TEgT8joBMwXzQQ/Xq1dNhXg0rRYsWVRdffLF6+OGHFd727JxFIzJ3TJgwQd9Svnx5HT5WtJ9oiMk1vyAgGpAPegLv+fr16+tpGIHu582bp7n666+/9Ce53YlBNH36dIVzK/ZDGDSuWbNGT70QNqQR2rp1qw9aIywIArEjIAIodqw8uxPXDcJ5IGRw3WBRmQD4hnbs2KHthvjOrhnaEemWCXq2e/duvajdu3dvc7t8CgIZg4BMwXzYVSYVEIvJUPXq1YNc4mlPPjIydSB8oBEjRsiuVxAhOcgkBEQA+bC3mFIhZB5//HHFQjSL0Ca8B+yi/ezfvz/IOVvv9kXo4AU5EAR8joAIIJ92EPZC5557rjYsvPfee3WcaVjFqpocZRBCiewcaEomhbS+IP8EgQxBQNaAMqCjWHhesWKFnnJxzJoRmTlw3zj22GNVt27dMqAVwqIgcCACIoAOxMS3ZxA2hgh8dscdd5iv8ikIZCQCaRdAmzdvDtk+xgaG3FtCgoAgkP0IpF0AjR8/XrHNzC86VLNmTRFA2T/upIWCgEYg7QIImxf8nsqWLStdIggIAjmGQFoFEBkjiI+DU+a7776r8vLy1IknnhjSBTNnztTJ/szJ4cOHq5NPPtl81Z8Y5xH4i8VZr4gdp+OPP96r4rWBIYXbw7d6URntYCHbKzLmAl5ihRU49lD2jLRetCeXxpQbIWES6YO0CiBCRuBuQEI/hEefPn1U165ddchS05jixYvraZn5zstjt4Hh/KGHHqrDUBiHTnOvm58IufB63Syfl4p20AYvXyyv20H5XtcBTjjt8ucVyZjyCtnQcg+yBnsg9FTqvvGy7dmzJ/irv3TpUh2u1DhWRuIEbSlc0CCkMMT7/fffIz3iyjk0E3tsZ1cKtRVyxBFHBF0x4o0HZCsm6iFCjqSJeMt7Rdgk8fL+/PPPXlWhA7oxBjDI9IoIocvYzJUxhQbkBZ7s3OIg7URpNUSk0faXmnUgFqS9/GVzAkLOCwKCQBoQQANKF1n+TAHLsTJgrQUFLKETsFwPAlZ0wLjZsWLrBCyjvLif89MD77zzTqBq1aoBy8HUT2zFzYsV7TFw+eWXx/2c3x6w4ikFLE3cb2zFxc/bb7+tx9T3338f13OpvDmta0D4PLVu3VpnEEWlRl0bOHBg3GLY6/WAuBlK8AHaYXV+gk/747Fs6QumwbQlk4mx5PcxlVYBROd27txZpzFmDcdu6ZvJHS+8CwKCQGwIpF0AwSaLo8kIn2bNmh2wNR9b8/1zF06mzZs3D8mY4R/uYucEQ9JixYrF/oBP72RMRVs89SnbIWzRD4wpL81TQipM4Etad8ES4FceEQQEgSxCIK27YFmEozRFEBAEEkDgkAcsSuC5iI+89dZb2kYHh1I36c0331QnnXRSSOD2L774Qmcbxe7EnujPXi9GjgT0+u6773RqZGOlyz0//fSTIpkfi412q11MA9544w1VunRpHWvHqZ5oZdt5MMescWFwaXc5ibUMJ14pm8BlpPIBc7uq/fnnn+tr5cqV08ae8eJg+A7/JPcYbTG+e1yPxl8sz2PgCTbYDmHThSGjIfuYilaPUz+ZcsI/Ex1TppxIz2NfhS0bywn2MZnKMRWNP3ONz2SxjDZ2o5Vt54Fj1wQQL/n999+vBz2J8dyil156SfuKdezYURu4US4hS19++WVtOPXYY4/piIEmfKmp988//9RW1RiSMSisLUl1wQUX6MHNC4vVNS/RuHHjVIECBXRuLp598cUX1ZQpU/QAQhBFqida2aZ+++fevXvV//3f/+m4zwSdh2ItIxqvTz75pHrllVe0G8rIkSNVxYoVValSpXT5JD9cuHChatiwoerZs6c2qIsHB11I2L+NGzdq3HCFMRELovEX9riK9Pz27dvVNddco/sFYUp/MH4wZrSPKX4QnPoslvFg5yXRMWXKiPQ82NLHjCkMadl9It8blKoxFY0/c43PaH0WC5bRxm60su08BI/d2vO3Bo62m7DSyAQsB9NgsZYACFgvYMD6FQhYgy14ngPOWb9+gUh2Cpy/++67Az169Ag0atRIl8Ez1iAOXHbZZQFLc+Fr4Lnnngs89NBD+tj+b9KkSQELzOApylm2bJn+3qlTp4CVuE8fw5M14AOWRNff4f/VV1/Vtiz2eihv0KBB2k4HmyNTNnxaAcEC1i91wDKqDNZnDix3k4CVtVS3o2/fvuZ0IBp/wZusAydewQx7G8taV9++atWqwNSpU/XxunXrAldffbW2q7rpppsO4NXS/ALffvttwBLqQRzAtWXLlhpf2hROliAOXHLJJYF27doF5s+fH7zsxF/whv8dOD3/yCOPhNjbWD9igblz5+qnHn300YAlZAP0CRiaPjO8WgH8A1bw/pDxAK4PPvigJ2PKaUzCrCUcA9hyQVaCgcCVV16pj/mXqjEVjb8gM9aBU59Fe7com/cVijZ2ncrWD0b458oaENOYBQsWqLy8PMUvPFqDIcJtEDjrhhtu0Nkbbr/99qArhcWsvkamUFLM2IkyyRqKhmOnDRs2aN8wds6g008/XTHdCCeCtnPNkLkPeyN+WdmtgVD5UZetF1p98sknil9kHGItwPWnqYdfPbQonGFnzJihpzU8T924h3D+uuuuO8COB4dbQqpaLy63B8mJv+AN1kE0Xi2Bo0hISN2vvfaa1kg6dOigHydtD9k16Av4M+FamT7RvsGDB6vRo0drjcTsPtJnaGr0UzjmFMr0jl92NB8zRYrGn2bE9i/S81wGM7RbQ0xj+IWl/+EJy/gmTZqobdu2Bftszpw5+p4bb7xRDRkyRGsbxmbnhRdeUJYgUF6MKacxCe9onkStpL+Z7pqdwFSOqWj8GXyj9Vm0dwvNBpMZyGnsRivb1B/+6YoAAnjWIFDN2fZj6kJHGCJ7A9OaiRMn6peKaYMhS7tRlsYRHFzmPL5RpJ9BFbcTA9E+3eIFiuR3xItmXi6eN/fxYuLlbF4irlEeXvnwwctwyimn6LTG3GsIQcQgJ0dXmTJl9EvPyw8xx2eqY2ljIeVyrUaNGlpQcGwnJ/7s90Tjlbo3bdqkX0CmLgyO5cuX62kpwhw+mZLBN/cZ4gUnLTQ/BAhekh8aYo0MQ9BevXqZU8FPtqXN2p71Q6bPR+Mv+OD/DiI9zyViWhvvfDLC8uNAjjPGFDjDZ926dTX2CCZD9J+lUSpLK9NtNGOK9sKfF2PKaUzCEwLP0rDVRRddpCZbiSRvu+02zWoqx1Q0/gxu0fos2rtFpl3aBTmN3Whl6wcj/HNFAAEyTo5oBsyFAeL1118PVsfLiSBh0KDV8MIYomF2YWDOO33ykiDpDSF17Yuv5rzTfeHnuZ8yIDQcHPKYs/NJoj8j3BjUBQsW1PfRPtYk0CgghBs5vYy2pE/m8y+cj0jtCL+HIrmPNSuEIUKTzBkMdjSX2bNnqyVLlmg++OWlP8CdUCeGELb8OlM2/NIGgyflgmWs7YjGn6kv1k+0Gta0WMsCZ8YUvHKeX1/GiH1MITz5IaF9tMeMKfop/AcmPx7C2xGpL/Irg3W29u3bax779eun0M4YO6kcU/nxyPXwtnLOjKnwa3Yc+JEwGw9O94Wft5fNcSRKWgDx688vL79SdD5/CBzzixReKb9iDHRDkYSHuRbpE4M9XjxDHJcsWdJ8DX6ysxV+H2oyv+IsTLOKb4j7UCuZeiFIaAP1MJBNllJeeLNbxicanmkHL4dZ/DVl5vfpxJ/9OSdeqQv+qlSpEkzXU7lyZT3dgt8GDRoE+4KX05rbK2vNRxeNsDE40AYGFgMHYgoWTzui8acLjPGftXaliPs0duxYvdsZPqbMGEHAGjK8ggNe66Yv6Dum1fFQrGPKqUx2ffiz1gy1QDz77LO1UOQHIJVjyok/+/lofRYrDk5jN1rZdh7sx0kLIKZbrK9Yi556nYO1jptvvllrD2vXrtV1vf/++3pwM2jQkCznUTsPcR2TR52MEGQFRUJbC5Y6rXF4IQwC1qWok8EBD9TLLyYvKL+sENoBoTb4pbIWDrWGxkBix4XBPGvWLC2sKMdsrfLi8+tWztri5mVhWzreNjnxZ2+HE6/we+aZZyprsVmvkfAMO14IITSfa6+9Vv8I0Bf8KqOh0Q7DKwOFshE25mVlDYwXPZ6AaNH4s7cj2rG1oK15f+KJJ4K8mDHFtI11LMYWqauZnjGm4BVBCr+sg/Ed8wbGA/1k1ryi1Wu/FuuYsj9jP+aFRNBgCgAxRSHKA1PhVI4pO09Ox9H6LBoO/FiZHzGnsRutbEd+nC7Eet7Mce3386KS04pFRNRo5vkMIqhx48Z6UNnvj+eYl8na0dJzbrQV7IN4ycKpadOmWtjxEjKlaNu2bdC0HvWYhXF+UbnGC8vaB7zhHGt55Os1KaY1rJFYOzBBjYJ20BlkK4UPBj0vbbxm+9H4s7clnFe2eiE0G67xx5SFzmdtB02AQP/Wjp3Gn3oQtrSVNRa0uqefflqn9GEqifAEP4QTZgrxkhN/sZbDuiALzdYOXPARpvO33HKLXjOkPfygsS5FP7EmhMbGC2/GFMLf2pnRWjc/GqwLxUOxjqloZcIfbQFPeIA30ialckxF489+zanPouHAFNc+plAkYnm3zHi11x9ybIHlKVmLoXp7mG1ua/rlWl3WGk1wCzpaodYCuN7qj3RPpG3z8PtMPZdeemnA+gUOUJ41HdO3RSs7vByn77GW4cSrJQCD26NOdXCeetjGtmxu9G18N+RUtrkey6cbZcRaT6QxZfopljKc7nGjDEsAORUfPG/q8WpMBSvK58Cpzwx/+TyuxxTb85HIqezwe0O3mEJEk7tf0ILcJNYuzO5JtHL5NXUis6jmdJ3z4fXYy7MfRysj2rVYy3DiFW0ALTM/oh6z1sO99nqdys6vTPt1N8qwl+d0bK/HPqbC+8np+Wjn3SgDDTM/Cq/H3hf24/zKSfa6HUt7WeH82a/Zj6Px6lS2/XmOPXdGZXGXgWJ3QQhnIhO+mzUksyCaCTyH88gWPFlI2DDIZJIxlcm9F8q75wIotDr5JggIAoLAfwgkvQv2X1FyJAgIAoJAfAiIAIoPL7lbEBAEXERABJCLYGZCUWzFs2UdD1k7ZvHcnu+99vKw68HsQSg3ERABlGP9jgDCXiVWwsXA8liP9fZ878PwEH9BQwgguz+aOS+fuYGACKDc6OeEW4lnt5uEFbs92R9GkDgxCuUmAiKAsrzfCbFAOBAsjZnqGMdT02x84jhvxazRltC9e/cOmtyPGDFCbbI86fHrI4SHIcugUVsl4yqBywpOu7HQ4sWLFWFNcKnAqtkyVtOhKygDwqeQevAq79Kli7LiHWlXG6zNOY+nOTzZffx4jkgLuDwQPYGAWtwvlBkIiADKjH5KiEteVFwxmHYRZRB3jPDpFO4XOE0Sc4cwGNx73nnnaW97K1Gidt3A858QJRDX8UPD5QChhYZEbKVYhBDuI7hQ4KqDbxf2Ydj04IwKYaOEgMHFhSgJGMS1adNGT9kQevAK/0OHDtX38w83DaIBEKcIJ2iEKYJLKEMQCDeNlu/Zg8B9990XsJw1g64jtMxyxNURJjm2nHR1tD4raBlfNRHt0Bq6weiVltFiwPKTM5cDlt+VjkAYPGEdcI7Ii7GQJTwClsAK3jpt2rSA5dOnv1uajK6b6I4QLgGW4WfAEnj6O/+IoEgGWchy/gxYvnyBZ599Vn/nH9E44f+d/0UnDF6QA18ikDJXjAyRx1nFJlpDXl5eSLwlFoDxnIfwiicMBvdNtoJN4c1tYgfZg38ZUJiu4W1P+BNiThvCxcMKjWq+JvWJU63xZkcDIiiZfdGakBEEzoKo03qrdEB7+DKEcy7XcAQV8jcCMgXzd/8kxR0e7uFrPrzUhghdwct9zjnn6GkYUyPjYW7usX+yfU5cJF5wogiYP0JmMFVyg/Brs/usEWsJL21D9uB1tA+BhVe/4YVPPNOJViDkfwREA/J/HyXMIXGa2Pa2k9F+OEe4FL6zUI2mYc7xiaAJJ7QPhAFxhKxEAMHLxO+xC7bghQgHdgES4XJcpwg5S+xuFqdZ/4EQuMTEJjaSkP8REA3I/32UMIfEayE2EPGhmVIx3SKOi6ESJUroF5Z4PBABp9gxg9COIKZpBD4z0x5iJLFoTIwhXnambMTfIehbLEQMJ8qyMkckvVtFzCmCwxFzhng18PzAAw+oO++8M0RrioUvuSdNCPhyZUqYcg2B6dOnB6ydp4C14xSwtJyAFTw9uAhNJaQUsrSagCWM9HVrRyxghVIIsDgMWZEK9bOUAVnB2PSCs6Xx6AViKypkgFQ6sRIpa6jLGu46TVL4IrQl8EKKsgRMMK0QF+DPmqYF77FiWutFakuzClihMPSxFQkzeF0O/I2AeMOnSfCnulrCljJ1ijQFsnabtAbjFA+a69jWmJC08M7UB82JbfVEiPWbWGPGxFI+oUbgEY1NKHMQEAGUOX3le06Zklm/t458moVixxvkQs4hIAIo57rcuwZjPBjNIJFg/6ReFhIEDAIigAwS8ikICAIpR0B2wVIOuVQoCAgCBgERQAYJ+RQEBIGUIyACKOWQS4WCgCBgEBABZJCQT0FAEEg5AiKAUg65VCgICAIGARFABgn5FAQEgZQj8P8Ag3UYQIgxkBgAAAAASUVORK5CYII=" /><!-- --></p>
 </div>
 <div id="calculate-gpp-and-er" class="section level2">
@@ -572,10 +624,180 @@ function to inspect the changes in DO concentrations.</p>
 <p>GPP and ER can be calculated using <code>calculate_do()</code>. NEM
 (denoted as <code>nep</code> in the output dataframe) was calculated by
 GPP + ER.</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="fu">calculate_do</span>(merged_df)</span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a><span class="fu">calculate_do</span>(merged_df)</span></code></pre></div>
 <pre><code>##     site         no_hobo       date     r_day      gpp        nep
 ## 1 site_A code_for_logger 2024-04-10 -17.77689 17.56762 -0.2092709</code></pre>
 </div>
+</div>
+<div id="statistical-analysis" class="section level1">
+<h1>Statistical analysis</h1>
+<p>aelab provides a small suite of statistical helpers that cover a
+typical aquatic ecology workflow: describe your data, check for
+outliers, test normality, transform if needed, and choose between a
+parametric or non-parametric group comparison.</p>
+<p>The examples below use a simple self-contained data frame with three
+groups.</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb32-2"><a href="#cb32-2" tabindex="-1"></a>stat_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb32-3"><a href="#cb32-3" tabindex="-1"></a>  <span class="at">group =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>, <span class="st">&quot;C&quot;</span>), <span class="at">each =</span> <span class="dv">8</span>),</span>
+<span id="cb32-4"><a href="#cb32-4" tabindex="-1"></a>  <span class="at">value =</span> <span class="fu">c</span>(<span class="fu">rnorm</span>(<span class="dv">8</span>, <span class="dv">2</span>, <span class="fl">0.4</span>), <span class="fu">rnorm</span>(<span class="dv">8</span>, <span class="fl">3.5</span>, <span class="fl">0.5</span>), <span class="fu">rnorm</span>(<span class="dv">8</span>, <span class="dv">5</span>, <span class="fl">0.6</span>))</span>
+<span id="cb32-5"><a href="#cb32-5" tabindex="-1"></a>)</span></code></pre></div>
+<div id="descriptive-statistics-descriptive_statistic" class="section level2">
+<h2>Descriptive statistics — <code>descriptive_statistic()</code></h2>
+<p><code>descriptive_statistic()</code> returns mean ± SD and min–max
+for each group.</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a><span class="fu">descriptive_statistic</span>(stat_df, <span class="at">vars =</span> value, <span class="at">groups =</span> group)</span></code></pre></div>
+<pre><code>## # A tibble: 3 × 3
+##   group value_mean_sd value_min_max
+##   &lt;chr&gt; &lt;chr&gt;         &lt;chr&gt;        
+## 1 A     2.18 ± 0.29   1.77 to 2.6  
+## 2 B     3.77 ± 0.63   2.81 to 4.64 
+## 3 C     4.62 ± 0.92   3.41 to 5.79</code></pre>
+</div>
+<div id="outlier-detection-find_outlier" class="section level2">
+<h2>Outlier detection — <code>find_outlier()</code></h2>
+<p><code>find_outlier()</code> uses the IQR method (values outside 1.5 ×
+IQR from Q1/Q3) to flag outliers.</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a><span class="fu">find_outlier</span>(stat_df, <span class="at">var =</span> <span class="st">&quot;value&quot;</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 0 × 2
+## # ℹ 2 variables: row_index &lt;int&gt;, outlier_value &lt;dbl&gt;</code></pre>
+</div>
+<div id="normality-testing" class="section level2">
+<h2>Normality testing</h2>
+<p>Use <code>normality_test_t()</code> when comparing two groups (t-test
+context), and <code>normality_test_aov()</code> when comparing three or
+more groups (ANOVA context). Both apply Shapiro-Wilk to raw,
+square-root, and log10 transforms so you can identify whether a
+transformation improves normality.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a><span class="co"># Two-group context</span></span>
+<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a><span class="fu">normality_test_t</span>(stat_df, <span class="st">&quot;value&quot;</span>, group, <span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 6 × 4
+##   variable group p_value transformation
+##   &lt;chr&gt;    &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;         
+## 1 value    A       0.613 None          
+## 2 value    B       0.733 None          
+## 3 value    A       0.581 Square root   
+## 4 value    B       0.691 Square root   
+## 5 value    A       0.547 Logarithm     
+## 6 value    B       0.619 Logarithm</code></pre>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" tabindex="-1"></a><span class="co"># One-way ANOVA context (all three groups)</span></span>
+<span id="cb39-2"><a href="#cb39-2" tabindex="-1"></a><span class="fu">normality_test_aov</span>(stat_df, <span class="st">&quot;value&quot;</span>, <span class="st">&quot;group&quot;</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 3 × 3
+##   variable p_value transformation
+##   &lt;chr&gt;      &lt;dbl&gt; &lt;chr&gt;         
+## 1 value     0.848  None          
+## 2 value     0.521  Square root   
+## 3 value     0.0745 Logarithm</code></pre>
+</div>
+<div id="data-transformation-df_trans" class="section level2">
+<h2>Data transformation — <code>df_trans()</code></h2>
+<p>If residuals are not normal, <code>df_trans()</code> appends a
+transformed column to the data frame for re-testing.</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" tabindex="-1"></a>stat_df_t <span class="ot">&lt;-</span> <span class="fu">df_trans</span>(stat_df, <span class="st">&quot;value&quot;</span>, <span class="st">&quot;sqrt&quot;</span>)</span>
+<span id="cb41-2"><a href="#cb41-2" tabindex="-1"></a><span class="fu">head</span>(stat_df_t)</span></code></pre></div>
+<pre><code>##   group    value value_sqrt
+## 1     A 2.548383   2.060021
+## 2     A 1.774121   2.240078
+## 3     A 2.145251   2.155648
+## 4     A 2.253145   2.130475
+## 5     A 2.161707   2.151827
+## 6     A 1.957550   2.198754</code></pre>
+</div>
+<div id="parametric-test-aov_test" class="section level2">
+<h2>Parametric test — <code>aov_test()</code></h2>
+<p>When normality holds, <code>aov_test()</code> runs a one-way ANOVA
+followed by Tukey HSD post-hoc comparisons and returns compact letter
+display (CLD) groupings.</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" tabindex="-1"></a><span class="fu">aov_test</span>(stat_df, <span class="st">&quot;value&quot;</span>, <span class="st">&quot;group&quot;</span>)</span></code></pre></div>
+<pre><code>##             Df Sum Sq Mean Sq F value   Pr(&gt;F)    
+## group        2  24.60   12.30   27.98 1.19e-06 ***
+## Residuals   21   9.23    0.44                     
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## $group
+##   C   B   A 
+## &quot;a&quot; &quot;b&quot; &quot;c&quot;</code></pre>
+<pre><code>## $anova_summary
+##             Df Sum Sq Mean Sq F value   Pr(&gt;F)    
+## group        2  24.60   12.30   27.98 1.19e-06 ***
+## Residuals   21   9.23    0.44                     
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## $tukey_results
+##   Tukey multiple comparisons of means
+##     95% family-wise confidence level
+## 
+## Fit: stats::aov(formula = formula, data = df)
+## 
+## $group
+##          diff        lwr      upr     p adj
+## B-A 1.5980249 0.76252027 2.433529 0.0002598
+## C-A 2.4411682 1.60566363 3.276673 0.0000009
+## C-B 0.8431434 0.00763877 1.678648 0.0476844
+## 
+## 
+## $compact_letters
+## $compact_letters$group
+##   C   B   A 
+## &quot;a&quot; &quot;b&quot; &quot;c&quot;</code></pre>
+</div>
+<div id="non-parametric-test-ks_test" class="section level2">
+<h2>Non-parametric test — <code>ks_test()</code></h2>
+<p>When normality cannot be assumed, <code>ks_test()</code> runs
+Kruskal-Wallis followed by Dunn’s post-hoc test with Bonferroni
+correction.</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" tabindex="-1"></a><span class="fu">ks_test</span>(stat_df, <span class="st">&quot;value&quot;</span>, <span class="st">&quot;group&quot;</span>)</span></code></pre></div>
+<pre><code>## $ks_results
+## 
+##  Kruskal-Wallis rank sum test
+## 
+## data:  value by group
+## Kruskal-Wallis chi-squared = 17.165, df = 2, p-value = 0.0001874
+## 
+## 
+## $dunn_results
+##   Comparison         Z      P.unadj        P.adj
+## 1      A - B -2.722361 6.481727e-03 0.0194451820
+## 2      A - C -4.065864 4.785484e-05 0.0001435645
+## 3      B - C -1.343503 1.791092e-01 0.5373275782
+## 
+## $mean_summary
+## # A tibble: 3 × 2
+##   group  mean
+##   &lt;chr&gt; &lt;dbl&gt;
+## 1 A      2.18
+## 2 B      3.77
+## 3 C      4.62
+## 
+## $compact_letters
+##   Group Letter MonoLetter
+## 1     A      a         a 
+## 2     B      b          b
+## 3     C      b          b</code></pre>
+</div>
+</div>
+<div id="visualization" class="section level1">
+<h1>Visualization</h1>
+<p>aelab provides plot wrappers — <code>plot_point()</code>,
+<code>plot_line()</code>, <code>plot_box()</code>, and
+<code>plot_bar()</code> — with a consistent theme built on Century
+Gothic. Custom colour palettes are available through
+<code>aelab_palettes()</code>, <code>scale_fill_aelab_d()</code>, and
+related scale functions.</p>
+<p>The example below previews the <code>&quot;ghg&quot;</code> palette and applies
+it to a box plot comparing CH₄ fluxes across three habitat types.</p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" tabindex="-1"></a><span class="co"># Preview the &quot;ghg&quot; palette</span></span>
+<span id="cb48-2"><a href="#cb48-2" tabindex="-1"></a><span class="fu">aelab_palettes</span>(<span class="st">&quot;ghg&quot;</span>)</span>
+<span id="cb48-3"><a href="#cb48-3" tabindex="-1"></a></span>
+<span id="cb48-4"><a href="#cb48-4" tabindex="-1"></a><span class="co"># Box plot with aelab palette</span></span>
+<span id="cb48-5"><a href="#cb48-5" tabindex="-1"></a>df_vis <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb48-6"><a href="#cb48-6" tabindex="-1"></a>  <span class="at">site =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&quot;Mangrove&quot;</span>, <span class="st">&quot;Mudflat&quot;</span>, <span class="st">&quot;Seagrass&quot;</span>), <span class="at">each =</span> <span class="dv">10</span>),</span>
+<span id="cb48-7"><a href="#cb48-7" tabindex="-1"></a>  <span class="at">ch4  =</span> <span class="fu">c</span>(<span class="fu">rnorm</span>(<span class="dv">10</span>, <span class="dv">2</span>, <span class="fl">0.5</span>), <span class="fu">rnorm</span>(<span class="dv">10</span>, <span class="dv">1</span>, <span class="fl">0.3</span>), <span class="fu">rnorm</span>(<span class="dv">10</span>, <span class="fl">0.5</span>, <span class="fl">0.2</span>))</span>
+<span id="cb48-8"><a href="#cb48-8" tabindex="-1"></a>)</span>
+<span id="cb48-9"><a href="#cb48-9" tabindex="-1"></a></span>
+<span id="cb48-10"><a href="#cb48-10" tabindex="-1"></a><span class="fu">plot_box</span>(df_vis, site, ch4, site) <span class="sc">+</span></span>
+<span id="cb48-11"><a href="#cb48-11" tabindex="-1"></a>  <span class="fu">scale_fill_aelab_d</span>(<span class="st">&quot;ghg&quot;</span>)</span></code></pre></div>
 </div>
 <div id="reference" class="section level1">
 <h1>Reference</h1>

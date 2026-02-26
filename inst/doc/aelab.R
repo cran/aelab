@@ -45,6 +45,26 @@ flux_ch4 <- data.frame(
 calculate_ghg_flux(flux_ch4)
 
 ## -----------------------------------------------------------------------------
+# Numeric input: 97 mg CH4 m-2 h-1 → µg m-2 h-1
+convert_ghg_unit(97, ghg = "ch4", mass = "mg", area = "m2", time = "hr")
+
+# Character string input: each number is converted individually
+convert_ghg_unit("0.002 ± 0.003", ghg = "ch4", mass = "mmol", area = "m2", time = "hr")
+
+## -----------------------------------------------------------------------------
+calculate_MDF(
+  precision_ppm     = 1,
+  closure_time_s    = 300,
+  data_point_n      = 300,
+  chamber_volume_m3 = 0.0064,
+  temperature_C     = 25,
+  chamber_area_m2   = 0.07
+)
+
+## -----------------------------------------------------------------------------
+calculate_total_co2e(co2 = 4.02, ch4 = 0.001, n2o = 0.003)
+
+## -----------------------------------------------------------------------------
 hobo_data_path <- system.file("extdata", "ex_hobo.csv", package = "aelab")
 do <- process_hobo(hobo_data_path, no_hobo = "code_for_logger")
 do[c(1:3), ]
@@ -68,4 +88,47 @@ plot_hobo(merged_df)
 
 ## -----------------------------------------------------------------------------
 calculate_do(merged_df)
+
+## -----------------------------------------------------------------------------
+set.seed(42)
+stat_df <- data.frame(
+  group = rep(c("A", "B", "C"), each = 8),
+  value = c(rnorm(8, 2, 0.4), rnorm(8, 3.5, 0.5), rnorm(8, 5, 0.6))
+)
+
+## -----------------------------------------------------------------------------
+descriptive_statistic(stat_df, vars = value, groups = group)
+
+## -----------------------------------------------------------------------------
+find_outlier(stat_df, var = "value")
+
+## -----------------------------------------------------------------------------
+# Two-group context
+normality_test_t(stat_df, "value", group, "A", "B")
+
+# One-way ANOVA context (all three groups)
+normality_test_aov(stat_df, "value", "group")
+
+## -----------------------------------------------------------------------------
+stat_df_t <- df_trans(stat_df, "value", "sqrt")
+head(stat_df_t)
+
+## -----------------------------------------------------------------------------
+aov_test(stat_df, "value", "group")
+
+## -----------------------------------------------------------------------------
+ks_test(stat_df, "value", "group")
+
+## ----eval=FALSE---------------------------------------------------------------
+#  # Preview the "ghg" palette
+#  aelab_palettes("ghg")
+#  
+#  # Box plot with aelab palette
+#  df_vis <- data.frame(
+#    site = rep(c("Mangrove", "Mudflat", "Seagrass"), each = 10),
+#    ch4  = c(rnorm(10, 2, 0.5), rnorm(10, 1, 0.3), rnorm(10, 0.5, 0.2))
+#  )
+#  
+#  plot_box(df_vis, site, ch4, site) +
+#    scale_fill_aelab_d("ghg")
 

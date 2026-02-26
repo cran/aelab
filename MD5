@@ -1,4 +1,4 @@
-8ef962120acd2363f55f8e2603171b82 *DESCRIPTION
+163d404d154234818bce7b2e25f23049 *DESCRIPTION
 c9b02158068661591c678d939309c099 *NAMESPACE
 4ed60d823ff3fb6b6f7b9c28fe2c153d *NEWS.md
 7ac859c07ce151584b48220dd5ada1f8 *R/ghg_flux.R
@@ -8,13 +8,13 @@ c9b02158068661591c678d939309c099 *NAMESPACE
 a13cc42b3ce960d299897742d179f79a *R/n2o.R
 4ab2118787babc59223bc21106f7a38c *R/statistics.R
 4e855ceac0a66476332fd3adcb1b38c8 *R/visualization.R
-19962a58a9a6b61e9950d2f537b96513 *README.md
+7f62ad5e230c7efaac37ea4aff5b2e34 *README.md
 85a110414f404f3cacbb2628abca6c09 *build/vignette.rds
 8b4bfb01e155adaa523cc1f511850611 *data/hobo.rda
 7a5db67fb3b1dbeaea4c29cd5b82b42e *data/n2o.rda
-273ae1dc7c560da04abbddc8e005ae88 *inst/doc/aelab.R
-99e12a5be1e726361922d35969e853e0 *inst/doc/aelab.Rmd
-4bb16f8ab7680b368775ddfa6c735bcb *inst/doc/aelab.html
+694a235fff17427a9d71762777f9433f *inst/doc/aelab.R
+a5a6ccd360db564697614044a0e54c46 *inst/doc/aelab.Rmd
+89abbe9a9c1ef121dbb43e90b95858d3 *inst/doc/aelab.html
 5977fb43780aba448752e0c59b074d7c *inst/extdata/ch4.xlsx
 239811005fc5ff0f2343882b87bdbf8c *inst/extdata/ex_2024-01-01.csv
 239811005fc5ff0f2343882b87bdbf8c *inst/extdata/ex_2024-01-02.csv
@@ -66,4 +66,4 @@ de0bef44e8946d5292d0a2b508d459ba *tests/testthat.R
 65b12d043600a432ffd75f4343ad2a6f *tests/testthat/ref/info.xlsx
 f87b26b0f25d92fd1585e1d9217e5b95 *tests/testthat/test-ghg_flux.R
 134bc06a4afe475e04125aed3c9eef2c *tests/testthat/test-hobo_do.R
-99e12a5be1e726361922d35969e853e0 *vignettes/aelab.Rmd
+a5a6ccd360db564697614044a0e54c46 *vignettes/aelab.Rmd
