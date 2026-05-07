@@ -196,16 +196,35 @@ ks_test <- function(df, variable_name, group) {
     stop(paste("Group", group, "not found in dataframe."))
   }
 
-  formula      <- stats::as.formula(paste(variable_name, "~", group))
-  ks_results   <- stats::kruskal.test(formula, data = df)
+  formula    <- stats::as.formula(paste(variable_name, "~", group))
+  ks_results <- stats::kruskal.test(formula, data = df)
 
-  dunn_results <- FSA::dunnTest(df[[variable_name]], df[[group]], method = "bonferroni")
+  # cldList -> multcompLetters -> vec2mat2 splits comparison names on "-",
+  # expecting exactly one per name. Sanitize group names containing "-" first.
+  orig_levels <- as.character(unique(df[[group]]))
+  safe_levels <- gsub("-", ".", orig_levels, fixed = TRUE)
+  level_map   <- stats::setNames(orig_levels, safe_levels)  # safe -> orig
+
+  df_safe          <- df
+  df_safe[[group]] <- gsub("-", ".", as.character(df[[group]]), fixed = TRUE)
+
+  dunn_results <- FSA::dunnTest(df_safe[[variable_name]], df_safe[[group]], method = "bonferroni")
   dunn_results <- dunn_results$res
 
   label <- rcompanion::cldList(
     comparison = dunn_results$Comparison,
     p.value    = dunn_results$P.adj,
     threshold  = 0.05
+  )
+
+  # Restore original group names (replace longest safe names first to avoid
+  # partial-match corruption, e.g. "CR.I" vs "CR.I1")
+  sorted_safe <- names(level_map)[order(nchar(names(level_map)), decreasing = TRUE)]
+  label$Group <- level_map[label$Group]
+  dunn_results$Comparison <- Reduce(
+    function(s, safe) gsub(safe, level_map[[safe]], s, fixed = TRUE),
+    sorted_safe,
+    dunn_results$Comparison
   )
 
   mean_summary <- df |>
@@ -219,6 +238,56 @@ ks_test <- function(df, variable_name, group) {
     mean_summary    = mean_summary,
     compact_letters = label
   )
+}
+
+
+
+#' @title sig_labels
+#' @description Run \code{\link{ks_test}} separately for each level of a
+#'   faceting variable and return compact letter display (CLD) annotations
+#'   ready for \code{geom_text}. Only facets where the Kruskal-Wallis p-value
+#'   is below \code{alpha} are included in the output.
+#' @param stat_data Data frame of raw observations used for the statistical
+#'   test. Should already be filtered to the relevant subset (e.g. a single
+#'   water type).
+#' @param variable Name of the response variable column (string).
+#' @param group Name of the grouping column (string).
+#' @param by Name of the faceting column whose levels are iterated over
+#'   (string, default \code{"year"}).
+#' @param plot_data Data frame used to compute label y-positions via
+#'   \code{max(variable)} per group. Defaults to \code{stat_data}. Pass the
+#'   aggregated/boxplot data here when it differs from the raw test data.
+#' @param alpha Significance threshold; facets with KW p-value >=
+#'   \code{alpha} are dropped (default \code{0.05}).
+#' @return A data frame with columns \code{<group>}, \code{Letter},
+#'   \code{MonoLetter}, \code{y_pos}, and \code{<by>}. Returns an empty data
+#'   frame when no facet reaches significance.
+#' @examples
+#' set.seed(1)
+#' df <- data.frame(
+#'   year = rep(c("2023", "2024"), each = 20),
+#'   grp  = rep(c("A","B","C","D"), 10),
+#'   val  = c(rnorm(20, mean = rep(c(1,3,2,6), 5)), rnorm(20))
+#' )
+#' sig_labels(df, "val", "grp", by = "year")
+#' @importFrom purrr map_df
+#' @export
+sig_labels <- function(stat_data, variable, group, by = "year",
+                       plot_data = NULL, alpha = 0.05) {
+  if (is.null(plot_data)) plot_data <- stat_data
+  purrr::map_df(as.character(unique(stat_data[[by]])), function(val) {
+    d_s <- stat_data[as.character(stat_data[[by]]) == val, ]
+    d_p <- plot_data[as.character(plot_data[[by]]) == val, ]
+    if (length(unique(d_s[[group]])) < 2) return(data.frame())
+    res <- tryCatch(ks_test(d_s, variable, group), error = function(e) NULL)
+    if (is.null(res) || res$ks_results$p.value >= alpha) return(data.frame())
+    lbl           <- res$compact_letters
+    names(lbl)[names(lbl) == "Group"] <- group
+    ypos          <- tapply(d_p[[variable]], d_p[[group]], max, na.rm = TRUE)
+    lbl$y_pos     <- ypos[as.character(lbl[[group]])]
+    lbl[[by]]     <- val
+    lbl
+  })
 }
 
 

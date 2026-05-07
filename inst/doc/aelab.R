@@ -9,6 +9,7 @@ library(lubridate)
 library(stats)
 library(dplyr)
 library(openxlsx)
+library(ggplot2)
 
 ## -----------------------------------------------------------------------------
 # The provided file is a raw data file downloaded from 
@@ -29,14 +30,22 @@ ref <- read_excel(ref_data_path)
 ref
 
 ## -----------------------------------------------------------------------------
-calculate_regression(ch4, ghg = "CH4", reference_time = ref$date_time,
+calculate_regression(ch4, ref, ghg = "CH4", reference_time = "date_time",
+                     site = "site", analyzer_code = "1337",
                      duration_minutes = 7, num_rows = 300)
 
 ## -----------------------------------------------------------------------------
-calculate_regression(ch4, ghg = "CH4", reference_time = as.POSIXct("2023-03-11 07:32:00", tz = "UTC"))
+ref_direct <- data.frame(
+  date_time = as.POSIXct("2023-03-11 07:32:00", tz = "Asia/Taipei"),
+  site = "S1",
+  analyzer = "1337"
+)
+calculate_regression(ch4, ref_direct, ghg = "CH4", reference_time = "date_time",
+                     site = "site", analyzer_code = "1337")
 
 ## -----------------------------------------------------------------------------
-results_ch4 <- calculate_regression(ch4, ghg = "CH4", reference_time = as.POSIXct("2023-03-11 07:32:00", tz = "UTC"))
+results_ch4 <- calculate_regression(ch4, ref_direct, ghg = "CH4", reference_time = "date_time",
+                                    site = "site", analyzer_code = "1337")
 flux_ch4 <- data.frame(
     slope = results_ch4$slope,
     area = 1, # in square meter
@@ -118,6 +127,31 @@ aov_test(stat_df, "value", "group")
 
 ## -----------------------------------------------------------------------------
 ks_test(stat_df, "value", "group")
+
+## ----results='hide'-----------------------------------------------------------
+set.seed(1)
+sig_df <- data.frame(
+  year = rep(c("2023", "2024"), each = 20),
+  site = rep(c("A", "B", "C", "D"), 10),
+  flux = c(
+    rnorm(20, mean = rep(c(1, 3, 2, 6), 5)),
+    rnorm(20)
+  )
+)
+labels <- sig_labels(sig_df, "flux", "site", by = "year")
+
+## -----------------------------------------------------------------------------
+labels
+
+## -----------------------------------------------------------------------------
+ggplot(sig_df, aes(x = site, y = flux)) +
+  geom_boxplot() +
+  geom_text(
+    data   = labels,
+    aes(x = site, y = y_pos, label = Letter),
+    vjust  = -0.5
+  ) +
+  facet_wrap(~year)
 
 ## ----eval=FALSE---------------------------------------------------------------
 #  # Preview the "ghg" palette
